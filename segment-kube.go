@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	pwl "github.com/justjanne/powerline-go/powerline"
 	"io/ioutil"
 	"os"
 	"path"
@@ -10,6 +9,8 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+
+	pwl "github.com/justjanne/powerline-go/powerline"
 
 	"gopkg.in/yaml.v2"
 )
@@ -109,7 +110,7 @@ func segmentKube(p *powerline) []pwl.Segment {
 		})
 	}
 
-	if namespace != "" {
+	if namespace != "" && !*p.args.IgnoreNamespace {
 		content := namespace
 		if !kubeIconHasBeenDrawnYet {
 			content = fmt.Sprintf("⎈ %s", content)

@@ -53,6 +53,7 @@ type args struct {
 	IgnoreRepos            *string
 	ShortenGKENames        *bool
 	ShortenEKSNames        *bool
+	IgnoreNamespace        *bool
 	ShellVar               *string
 	PathAliases            *string
 	Duration               *string
@@ -238,6 +239,10 @@ func main() {
 			"shorten-eks-names",
 			false,
 			comments("Shortens names for EKS Kube clusters.")),
+		IgnoreNamespace: flag.Bool(
+			"ignore-namespace",
+			false,
+			comments("Doesn't add the context namespace to the segments.")),
 		ShellVar: flag.String(
 			"shell-var",
 			"",
