@@ -89,10 +89,10 @@ func parseGitBranchInfo(status []string) map[string]string {
 	return groupDict(branchRegex, status[0])
 }
 
-func getGitDetachedBranch(p *powerline) string {
-	out, err := runGitCommand("git", "rev-parse", "--short", "HEAD")
+func getGitDetachedBranch(git string, p *powerline) string {
+	out, err := runGitCommand(git, "rev-parse", "--short", "HEAD")
 	if err != nil {
-		out, err := runGitCommand("git", "symbolic-ref", "--short", "HEAD")
+		out, err := runGitCommand(git, "symbolic-ref", "--short", "HEAD")
 		if err != nil {
 			return "Error"
 		}
@@ -128,8 +128,8 @@ func parseGitStats(status []string) repoStats {
 	return stats
 }
 
-func repoRoot(path string) (string, error) {
-	out, err := runGitCommand("git", "rev-parse", "--show-toplevel")
+func repoRoot(git, path string) (string, error) {
+	out, err := runGitCommand(git, "rev-parse", "--show-toplevel")
 	if err != nil {
 		return "", err
 	}
@@ -145,8 +145,19 @@ func indexSize(root string) (int64, error) {
 	return fileInfo.Size(), nil
 }
 
+// Returns "yadm" if the path is the users home directory and "git" otherwise.
+func gitCommand(path string) string {
+	home, _ := os.LookupEnv("HOME")
+	if path == home {
+		return "yadm"
+	}
+	return "git"
+}
+
 func segmentGit(p *powerline) []pwl.Segment {
-	repoRoot, err := repoRoot(p.cwd)
+	git := gitCommand(p.cwd)
+
+	repoRoot, err := repoRoot(git, p.cwd)
 	if err != nil {
 		return []pwl.Segment{}
 	}
@@ -164,7 +175,7 @@ func segmentGit(p *powerline) []pwl.Segment {
 		args = append(args, "-uno")
 	}
 
-	out, err := runGitCommand("git", args...)
+	out, err := runGitCommand(git, args...)
 	if err != nil {
 		return []pwl.Segment{}
 	}
@@ -183,7 +194,7 @@ func segmentGit(p *powerline) []pwl.Segment {
 
 		branch = branchInfo["local"]
 	} else {
-		branch = getGitDetachedBranch(p)
+		branch = getGitDetachedBranch(git, p)
 	}
 
 	if len(p.symbolTemplates.RepoBranch) > 0 {
@@ -199,7 +210,7 @@ func segmentGit(p *powerline) []pwl.Segment {
 		background = p.theme.RepoCleanBg
 	}
 
-	out, err = runGitCommand("git", "rev-list", "-g", "refs/stash")
+	out, err = runGitCommand(git, "rev-list", "-g", "refs/stash")
 	if err == nil && len(out) > 0 {
 		stats.stashed = len(strings.Split(out, "\n")) - 1
 	}
